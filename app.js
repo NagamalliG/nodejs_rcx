@@ -31,12 +31,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/shopify_auth', function(req, res) {
     if (req.query.shop) {
         req.session.shop = req.query.shop;
-        console.log('req.session.shop :== ' + req.session.shop);
+        console.log('req.session.shop in  /shopify_auth function=== ' + req.session.shop);
         res.render('embedded_app_redirect', {
             shop: req.query.shop,
             api_key: config.oauth.api_key,
             scope: config.oauth.scope,
             redirect_uri: config.oauth.redirect_uri
+        });
+    } else {
+        res.render('app_install', {
+            title: 'Shopify Embedded App'
         });
     }
 })
@@ -45,13 +49,14 @@ app.get('/shopify_auth', function(req, res) {
 // Shopify provides the app the is authorization_code, which is exchanged for an access token
 app.get('/access_token', verifyRequest, function(req, res) {
     if (req.query.shop) {
+        console.log('req.query.shop in /access_token function  = ' + req.query.shop);
         var params = {
             client_id: config.oauth.api_key,
             client_secret: config.oauth.client_secret,
             code: req.query.code
         }
         var req_body = querystring.stringify(params);
-        console.log("req_body in access_token ============================");
+        console.log("req_body in /access_token ============================");
         console.log(req_body)
 
         request({
@@ -68,19 +73,16 @@ app.get('/access_token', verifyRequest, function(req, res) {
                 console.log(body);
                 body = JSON.parse(body);
                 req.session.access_token = body.access_token;
-                console.log("session in access_token");
-                console.log(req.session);
+                console.log('req.session.access_token   ====   ' + req.session.access_token);
                 res.redirect('/');
             })
     }
 })
 
-// Renders the install/login form
-app.get('/install', function(req, res) {
-    res.render('app_install', {
-        title: 'Shopify Embedded App'
-    });
-})
+// // Renders the install/login form
+// app.get('/install', function(req, res) {
+//     req.redirect('/shopify_auth');
+// })
 
 // Renders content for a modal
 app.get('/modal_content', function(req, res) {
@@ -93,15 +95,16 @@ app.get('/modal_content', function(req, res) {
 // This check should probably be done on every page, and should be handled by a middleware
 app.get('/', function(req, res) {
     if (req.session.access_token) {
+        console.log('req.session.access_token  in get / = ' + req.session.access_token);
         res.render('index', {
             title: 'Home',
             api_key: config.oauth.api_key,
             shop: req.session.shop
         });
-        console.log('if condition...');
+
     } else {
-        console.log('if condition...')
-        res.redirect('/install');
+        console.log('req = ' + req.param);
+        res.redirect('/shopify_auth/?shop=' + req.query.shop);
     }
 })
 
@@ -121,7 +124,7 @@ app.get('/products', function(req, res) {
     previous = page == 1 ? page : page - 1;
 
     request.get({
-        url: 'https://' + req.session.shop + '.myshopify.com/admin/products.json?limit=5&page=' + page,
+        url: 'https://' + req.session.shop + '/admin/products.json?limit=5&page=' + page,
         headers: {
             'X-Shopify-Access-Token': req.session.access_token
         }
@@ -153,13 +156,9 @@ app.post('/products', function(req, res) {
         }
     }
     req_body = JSON.stringify(data);
-    console.log('data in product ===========================');
-    console.log(data);
-    console.log('req_body in product =========================');
-    console.log(req_body);
     request({
         method: "POST",
-        url: 'https://' + req.session.shop + '.myshopify.com/admin/products.json',
+        url: 'https://' + req.session.shop + '/admin/products.json',
         headers: {
             'X-Shopify-Access-Token': req.session.access_token,
             'Content-type': 'application/json; charset=utf-8'
@@ -168,8 +167,6 @@ app.post('/products', function(req, res) {
     }, function(error, response, body) {
         if (error)
             return next(error);
-        console.log('body in product =========================');
-        console.log(body);
         body = JSON.parse(body);
         if (body.errors) {
             return res.json(500);
@@ -182,19 +179,13 @@ function verifyRequest(req, res, next) {
     var map = JSON.parse(JSON.stringify(req.query));
     delete map['signature'];
     delete map['hmac'];
-
     var message = querystring.stringify(map);
     var generated_hash = crypto.createHmac('sha256', config.oauth.client_secret).update(message).digest('hex');
-    console.log('generated_hash in verifyRequest =========================');
-    console.log(generated_hash);
-    console.log('hmac in verifyRequest =========================');
-    console.log(req.query.hmac);
     if (generated_hash === req.query.hmac) {
         next();
     } else {
         return res.json(400);
     }
-
 }
 
 // catch 404 and forward to error handler
