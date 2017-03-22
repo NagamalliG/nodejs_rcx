@@ -9,6 +9,7 @@ var bodyParser = require('body-parser');
 var request = require('request');
 var config = require('./settings')
 var session = require('express-session')
+var saveStoreCredentials = require('/utils/saveStoreCredentials');
 var app = express();
 
 // view engine setup
@@ -71,6 +72,10 @@ app.get('/access_token', verifyRequest, function(req, res) {
             function(err, resp, body) {
                 console.log("body in access_token ==========================");
                 console.log(body);
+                var shop = {};
+                shop['shop'] = req.query.shop;
+                shop['access_token'] = body.access_token;
+                saveStoreCredentials(shop);
                 body = JSON.parse(body);
                 req.session.access_token = body.access_token;
                 console.log('req.session.access_token   ====   ' + req.session.access_token);
