@@ -9,7 +9,11 @@ const saveStoreCredentials = function(params) {
         }
         var collection = db.collection('shop');
         collection.insert(params, function(err, result) {
-            callback(result);
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(result);
+            }
         });
     });
 };
