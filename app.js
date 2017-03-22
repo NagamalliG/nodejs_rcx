@@ -9,7 +9,7 @@ var bodyParser = require('body-parser');
 var request = require('request');
 var config = require('./settings')
 var session = require('express-session')
-var saveStoreCredentials = require('/utils/saveStoreCredentials');
+var saveStoreCredentials = require('./utils/saveStoreCredentials');
 var app = express();
 
 // view engine setup
