@@ -72,9 +72,10 @@ app.get('/access_token', verifyRequest, function(req, res) {
             function(err, resp, body) {
                 console.log("body in access_token ==========================");
                 console.log(body);
+                console.log('access_token  ' + body['access_token']);
                 var shop = {};
                 shop['shop'] = req.query.shop;
-                shop['access_token'] = body.access_token;
+                shop['access_token'] = body['access_token'];
                 saveStoreCredentials(shop);
                 body = JSON.parse(body);
                 req.session.access_token = body.access_token;
