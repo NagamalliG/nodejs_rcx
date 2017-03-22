@@ -7,9 +7,10 @@ var cookieParser = require('cookie-parser');
 var crypto = require('crypto');
 var bodyParser = require('body-parser');
 var request = require('request');
-var config = require('./settings')
+var config = require('config')
 var session = require('express-session')
 var saveStoreCredentials = require('./utils/saveStoreCredentials');
+var webHook = require('./utils/webHook');
 var app = express();
 
 // view engine setup
@@ -35,9 +36,9 @@ app.get('/shopify_auth', function(req, res) {
         console.log('req.session.shop in  /shopify_auth function=== ' + req.session.shop);
         res.render('embedded_app_redirect', {
             shop: req.query.shop,
-            api_key: config.oauth.api_key,
-            scope: config.oauth.scope,
-            redirect_uri: config.oauth.redirect_uri
+            api_key: config.get('oauth.api_key'),
+            scope: config.get('oauth.scope'),
+            redirect_uri: config.get('oauth.redirect_uri')
         });
     } else {
         res.render('app_install', {
@@ -46,14 +47,15 @@ app.get('/shopify_auth', function(req, res) {
     }
 })
 
+
 // After the users clicks 'Install' on the Shopify website, they are redirected here
 // Shopify provides the app the is authorization_code, which is exchanged for an access token
 app.get('/access_token', verifyRequest, function(req, res) {
     if (req.query.shop) {
         console.log('req.query.shop in /access_token function  = ' + req.query.shop);
         var params = {
-            client_id: config.oauth.api_key,
-            client_secret: config.oauth.client_secret,
+            client_id: config.get('oauth.api_key'),
+            client_secret: config.get('oauth.client_secret'),
             code: req.query.code
         }
         var req_body = querystring.stringify(params);
@@ -80,6 +82,7 @@ app.get('/access_token', verifyRequest, function(req, res) {
                 shop['shop'] = req.query.shop;
                 shop['access_token'] = req.session.access_token
                 saveStoreCredentials(shop);
+                webHook.createOrder(shop);
                 res.redirect('/');
             })
     }
@@ -104,7 +107,7 @@ app.get('/', function(req, res) {
         console.log('req.session.access_token  in get / = ' + req.session.access_token);
         res.render('index', {
             title: 'Home',
-            api_key: config.oauth.api_key,
+            api_key: config.get('oauth.api_key'),
             shop: req.session.shop
         });
 
@@ -117,10 +120,12 @@ app.get('/', function(req, res) {
 app.get('/add_product', function(req, res) {
     res.render('add_product', {
         title: 'Add A Product',
-        api_key: config.oauth.api_key,
+        api_key: config.get('oauth.api_key'),
         shop: req.session.shop,
     });
 })
+
+
 
 app.get('/products', function(req, res) {
     var next, previous, page;
@@ -140,7 +145,7 @@ app.get('/products', function(req, res) {
         body = JSON.parse(body);
         res.render('products', {
             title: 'Products',
-            api_key: config.oauth.api_key,
+            api_key: config.get('oauth.api_key'),
             shop: req.session.shop,
             next: next,
             previous: previous,
@@ -148,6 +153,13 @@ app.get('/products', function(req, res) {
         });
     })
 })
+
+
+app.post('/getOrder', function(req, res) {
+    console.log('Received shopify order ' + JSON.stringify(req.body));
+    res.json(200);
+});
+
 
 app.post('/products', function(req, res) {
     data = {
@@ -186,7 +198,7 @@ function verifyRequest(req, res, next) {
     delete map['signature'];
     delete map['hmac'];
     var message = querystring.stringify(map);
-    var generated_hash = crypto.createHmac('sha256', config.oauth.client_secret).update(message).digest('hex');
+    var generated_hash = crypto.createHmac('sha256', config.get('oauth.client_secret')).update(message).digest('hex');
     if (generated_hash === req.query.hmac) {
         next();
     } else {

@@ -1,9 +1,0 @@
-{
-    "oauth": {
-        "api_key": "f1bed68735c1a791cb1d4f7bb89bf126",
-        "client_secret": "7308644ba27901d832cba146d14b3254",
-        "redirect_uri": "https://rcx-loyalty.herokuapp.com/access_token",
-        "scope": "read_themes,write_themes,write_customers,read_script_tags,write_script_tags,read_products,write_products"
-    },
-    "app_url": "https://rcx-loyalty.herokuapp.com"
-}
