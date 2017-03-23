@@ -42,7 +42,7 @@ app.get('/shopify_auth', function(req, res) {
         });
     } else {
         res.render('app_install', {
-            title: 'Shopify Embedded App'
+            title: 'RCX Loyalty'
         });
     }
 })
@@ -51,6 +51,7 @@ app.get('/shopify_auth', function(req, res) {
 // After the users clicks 'Install' on the Shopify website, they are redirected here
 // Shopify provides the app the is authorization_code, which is exchanged for an access token
 app.get('/access_token', verifyRequest, function(req, res) {
+    console.log('req in /access_token funtion ' + req);
     if (req.query.shop) {
         console.log('req.query.shop in /access_token function  = ' + req.query.shop);
         var params = {
@@ -83,6 +84,8 @@ app.get('/access_token', verifyRequest, function(req, res) {
                 shop['access_token'] = req.session.access_token
                 saveStoreCredentials(shop);
                 webHook.createOrder(shop);
+                webHook.createCustomer(shop);
+                webHook.createProduct(shop);
                 res.redirect('/');
             })
     }
@@ -95,16 +98,16 @@ app.get('/access_token', verifyRequest, function(req, res) {
 
 // Renders content for a modal
 app.get('/modal_content', function(req, res) {
-    res.render('modal_content', {
-        title: 'Embedded App Modal'
-    });
-})
-
-// The home page, checks if we have the access token, if not we are redirected to the install page
-// This check should probably be done on every page, and should be handled by a middleware
+        res.render('modal_content', {
+            title: 'Embedded App Modal'
+        });
+    })
+    // The home page, checks if we have the access token, if not we are redirected to the install page
+    // This check should probably be done on every page, and should be handled by a middleware
 app.get('/', function(req, res) {
+    console.log('req in / get funtion ' + req);
     if (req.session.access_token) {
-        console.log('req.session.access_token  in get / = ' + req.session.access_token);
+        //console.log('req.session.access_token  in get / = ' + req.session.access_token);
         res.render('index', {
             title: 'Home',
             api_key: config.get('oauth.api_key'),

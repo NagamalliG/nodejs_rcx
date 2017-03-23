@@ -1,25 +1,56 @@
 var shopifyAPI = require('shopify-node-api');
 var config = require('config');
-
+var prepareShopifyObject = require('./prepareShopifyObject');
 const createOrder = function(params) {
-    var Shopify = new shopifyAPI({
-        shop: params.shop, // MYSHOP.myshopify.com 
-        shopify_api_key: config.get('oauth.api_key'),
-        shopify_shared_secret: config.get('oauth.client_secret'),
-        access_token: params.access_token, //permanent token 
-        verbose: false
-    });
-
-    var post_data = {
-        "webhook": {
-            "topic": "orders/create",
-            "address": config.get('app_url') + '/getOrder',
-            "format": "json"
+    prepareShopifyObject(params).then(shopifyobj => {
+        var post_data = {
+            "webhook": {
+                "topic": "orders/create",
+                "address": config.get('webHookHost') + config.get('orderWebHookEndPoint'),
+                "format": "json"
+            }
         }
-    }
-    Shopify.post('/admin/webhooks.json', post_data, function(err, data, headers) {
-        console.log(data);
+        shopifyobj.post('/admin/webhooks.json', post_data, function(err, data, headers) {
+            console.log(data);
+        });
+    }).catch(err => {
+        console.log('err in createOrder :' + err);
     });
 };
-
-module.exports = { createOrder: createOrder };
+const createCustomer = function(params) {
+    prepareShopifyObject(params).then(shopifyobj => {
+        var post_data = {
+            "webhook": {
+                "topic": "customers/create",
+                "address": config.get('webHookHost') + config.get('customerWebHookEndPoint'),
+                "format": "json"
+            }
+        }
+        shopifyobj.post('/admin/webhooks.json', post_data, function(err, data, headers) {
+            console.log(data);
+        });
+    }).catch(err => {
+        console.log('err in createCustomer :' + err);
+    });
+};
+const createProduct = function(params) {
+    prepareShopifyObject(params).then(shopifyobj => {
+        var post_data = {
+            "webhook": {
+                "topic": "products/create",
+                "address": config.get('webHookHost') + config.get('productWebHookEndPoint'),
+                "format": "json"
+            }
+        }
+        shopifyobj.post('/admin/webhooks.json', post_data, function(err, data, headers) {
+            console.log(data);
+        });
+    }).catch(err => {
+        console.log('err in createCustomer :' + err);
+    });
+};
+module.exports = {
+    createOrder: createOrder,
+    createCustomer: createCustomer,
+    createProduct: createProduct
+};
