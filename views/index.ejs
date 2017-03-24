@@ -21,8 +21,10 @@
 	ShopifyApp.ready(function(){
 		ShopifyApp.Bar.initialize({
 			icon: '/images/logo.png',
-			width:40,
-			height:40,
+			callback: function() {
+				width: 40,
+				height: 40,
+			}
 		});
 		ShopifyApp.Bar.loadingOff();
 	});
