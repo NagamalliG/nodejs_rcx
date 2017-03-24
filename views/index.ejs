@@ -22,50 +22,8 @@
 		ShopifyApp.Bar.initialize({
 			title: '<%= title %>',
 			icon: '/images/logo.png',
-			buttons: {
-				primary: {
-					label: "Save",
-					message: 'bar_save'
-				},
-				secondary: [
-					// Dropdown example
-					{ 
-						label: "More",
-						type: "dropdown",
-						links: [
-							// Link Button that opens in the app
-							{ label: "Update", href: "/update", target: "app" },
-							// Button with a callback function
-							{ label: "Delete", callback: function(){ alert("destroy") } }
-						]
-					},
-					{ 
-						// Link Button that opens in a new window
-						label: "Preview", href: 'http://<%= shop %>', 
-						target: "new" 
-					},
-					{ 
-						label: "Open Modal", 
-						callback: function() {
-							ShopifyApp.Modal.open({
-							  src: 'http://localhost:3000/modal_content',
-							  title: 'A new modal',
-							  width: 'small',
-							  height: 300,
-							  buttons: {
-							    primary: { label: "OK" },
-							    secondary: [
-							      { label: "Cancel", callback: function (label) { ShopifyApp.Modal.close(); } }
-							    ]
-							  }
-							});
-						}
-					}
-				]
-			}
 		});
 		ShopifyApp.Bar.loadingOff();
-
 	});
 	</script>
 	<!-- Nav tabs -->
@@ -97,7 +55,7 @@
         
         <p>Welcome to Tiers</p>
     </div>
-    <!--/.Panel 3-->
+    <!--/.Panel 3
 </div>
 	  <div class="row">
 	    <div class="large-6 columns">
@@ -111,6 +69,6 @@
 	        </div>
 	      </div>
 	    </div>
-	  </div>
+	  </div>-->
 </body>
 </html>
