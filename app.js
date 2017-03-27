@@ -40,10 +40,6 @@ app.get('/shopify_auth', function(req, res) {
             scope: config.get('oauth.scope'),
             redirect_uri: config.get('oauth.redirect_uri')
         });
-    } else {
-        res.render('app_install', {
-            title: 'RCX Loyalty'
-        });
     }
 })
 
@@ -75,7 +71,6 @@ app.get('/access_token', verifyRequest, function(req, res) {
             function(err, resp, body) {
                 console.log("body in access_token ==========================");
                 console.log(body);
-                console.log('access_token  ' + body['access_token']);
                 body = JSON.parse(body);
                 req.session.access_token = body.access_token;
                 console.log('req.session.access_token   ====   ' + req.session.access_token);
@@ -86,7 +81,7 @@ app.get('/access_token', verifyRequest, function(req, res) {
                 webHook.createOrder(shop);
                 webHook.createCustomer(shop);
                 webHook.createProduct(shop);
-                res.redirect('/');
+                res.redirect('/?shop=' + req.query.shop);
             })
     }
 })
@@ -106,17 +101,14 @@ app.get('/modal_content', function(req, res) {
     // This check should probably be done on every page, and should be handled by a middleware
 app.get('/', function(req, res) {
     console.log('req in / get funtion ' + req);
-    if (req.session.access_token) {
-        //console.log('req.session.access_token  in get / = ' + req.session.access_token);
-        res.render('index', {
-            title: 'Home',
-            api_key: config.get('oauth.api_key'),
-            shop: req.session.shop
-        });
-
-    } else {
+    if (req.query.hmac) {
         console.log('req = ' + req.param);
         res.redirect('/shopify_auth/?shop=' + req.query.shop);
+    } else {
+        console.log('shop Name in index view===== ' + req.query.shop);
+        res.render('index', {
+            title: 'Home'
+        });
     }
 })
 
