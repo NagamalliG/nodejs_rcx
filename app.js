@@ -81,7 +81,8 @@ app.get('/access_token', verifyRequest, function(req, res) {
                 webHook.createOrder(shop);
                 webHook.createCustomer(shop);
                 webHook.createProduct(shop);
-                res.redirect('/?shop=' + req.query.shop);
+                req.session['shop'] = req.query.shop;
+                res.redirect('/');
             })
     }
 })
@@ -105,7 +106,13 @@ app.get('/', function(req, res) {
         console.log('req = ' + req.param);
         res.redirect('/shopify_auth/?shop=' + req.query.shop);
     } else {
-        console.log('shop Name in index view===== ' + req.query.shop);
+        console.log('shop Name in index view===== ' + req.session.shop);
+        var params = {};
+        params['shop'] = req.session.shop;
+        getAccessToken(params).then(success => {
+            console.log("success data = " + JSON.stringify(success));
+        });
+        getCustomerDetails(params);
         res.render('index', {
             title: 'Home'
         });
